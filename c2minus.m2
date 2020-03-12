@@ -204,13 +204,13 @@ edgeComplex = method();
 edgeComplex(Braid, BraidRes) := (b, br) -> (
     out := withZeroDifferential(br.r);
     for i from 0 to #b.word-1 do (
-	c := if b.word#i > 0 then 1 else (
-	    adjacentEdges := br.adjacent#(vertex(i,0));
-	    (adjacentEdges#1).var - (adjacentEdges#3).var
-	);
-	edge := differentialGradedModule((br.r)^2,
-	    map((br.r)^2, (br.r)^2, {(1,0) => c}), {0,1}, squaresToZero => false);
-	out = edge ** out;
+        c := if b.word#i > 0 then 1 else (
+            adjacentEdges := br.adjacent#(vertex(i,0));
+            (adjacentEdges#1).var - (adjacentEdges#3).var
+        );
+        edge := differentialGradedModule((br.r)^2,
+            map((br.r)^2, (br.r)^2, {(1,0) => c}), {0,1}, squaresToZero => false);
+        out = edge ** out;
     );
     return out;
 );
@@ -223,34 +223,38 @@ C2Minus(Braid) := (b) -> (
     return tensor'(A,B);
 );
 
--- test it out
-b = braid(1, {1,-1});
-C' = C2Minus(b);
+loadSS = method();
+loadSS(DifferentialGradedModule) := (C) -> (
+    FC := toFiltration(C.m, C.g);
+    del := C.d;
 
-C = toFiltration(C'.m, C'.g)
-del = C'.d
+    FFunction := p -> trim FC#(min(max(p,0),#FC-1));
+    etaFunction := p -> inducedMap(trim(F(p)/F(p+1)), F(p));
+    AFunction := (r,p) -> trim(kernel inducedMap(trim(F(p)/F(p+r)), F(p), del));
+    ZFunction := (r,p) -> trim(image inducedMap(, A(r,p), eta(p)));
+    BFunction := (r,p) -> trim(image inducedMap(, image inducedMap(, A(r-1,p-r+1), del), eta(p)));
+    EFunction := (r,p) -> trim(Z(r,p)/B(r,p));
+    EPrimeFunction := (r,p) -> trim(A(r,p)/(image(inducedMap(A(r,p), A(r-1,p-r+1), del)) + A(r-1,p+1)));
+    EPrimeToEFunction := (r,p) -> inducedMap(E(r,p),E'(r,p));
+    dFunction := (r,p) -> E'toE(r,p+r) * inducedMap(E'(r,p+r), E'(r,p), del) * inverse(E'toE(r,p));
+    HFunction := (r,p) -> trim(kernel(d(r,p)) / image(d(r,p-r)));
 
-FFunction = p -> trim C#(min(max(p,0),#C-1))
-etaFunction = p -> inducedMap(trim(F(p)/F(p+1)), F(p))
-AFunction = (r,p) -> trim(kernel inducedMap(trim(F(p)/F(p+r)), F(p), del))
-ZFunction = (r,p) -> trim(image inducedMap(, A(r,p), eta(p)))
-BFunction = (r,p) -> trim(image inducedMap(, image inducedMap(, A(r-1,p-r+1), del), eta(p)))
-EFunction = (r,p) -> trim(Z(r,p)/B(r,p))
-EPrimeFunction = (r,p) -> trim(A(r,p)/(image(inducedMap(A(r,p), A(r-1,p-r+1), del)) + A(r-1,p+1)))
-EPrimeToEFunction = (r,p) -> inducedMap(E(r,p),E'(r,p))
-dFunction = (r,p) -> E'toE(r,p+r) * inducedMap(E'(r,p+r), E'(r,p), del) * inverse(E'toE(r,p))
-HFunction = (r,p) -> trim(kernel(d(r,p)) / image(d(r,p-r)))
+    functionCache := new MutableHashTable;
+    cached := c -> (
+        f -> (
+            if not c#?f 
+            then c#f = new MutableHashTable; 
+            (i -> (if not c#f#?i then c#f#i = f(i); c#f#i))));
 
-functionCache = new MutableHashTable
-cached = c -> (f -> (if not c#?f then c#f = new MutableHashTable; (i -> (if not c#f#?i then c#f#i = f(i); c#f#i))))
+    F = (cached(functionCache))(FFunction);
+    eta = (cached(functionCache))(etaFunction);
+    A = (cached(functionCache))(AFunction);
+    Z = (cached(functionCache))(ZFunction);
+    B = (cached(functionCache))(BFunction);
+    E = (cached(functionCache))(EFunction);
+    E' = (cached(functionCache))(EPrimeFunction);
+    E'toE = (cached(functionCache))(EPrimeToEFunction);
+    d = (cached(functionCache))(dFunction);
+    H = (cached(functionCache))(HFunction);
+);
 
-F = (cached(functionCache))(FFunction)
-eta = (cached(functionCache))(etaFunction)
-A = (cached(functionCache))(AFunction)
-Z = (cached(functionCache))(ZFunction)
-B = (cached(functionCache))(BFunction)
-E = (cached(functionCache))(EFunction)
-E' = (cached(functionCache))(EPrimeFunction)
-E'toE = (cached(functionCache))(EPrimeToEFunction)
-d = (cached(functionCache))(dFunction)
-H = (cached(functionCache))(HFunction)

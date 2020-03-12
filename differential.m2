@@ -8,7 +8,7 @@ opts ->
     if opts.squaresToZero then assert(d^2 == 0);
     -- TODO: assert that g is compatible with d
     return new DifferentialGradedModule from hashTable {
-        (global m) => m,
+        (global m) => trim' m,
         (global d) => d,
         (global g) => g
     };
@@ -47,5 +47,5 @@ tensor'(DifferentialGradedModule, DifferentialGradedModule) := DifferentialGrade
 toFiltration = method();
 toFiltration(Module, List) := List =>
     (M, g) -> (
-        return for i from 0 to max(g) list image M_(positions(g, (j) -> i <= j));
+        return for i from 0 to max(g)+1 list image M_(positions(g, (j) -> i <= j));
     );
