@@ -174,13 +174,13 @@ XOR(Boolean, Boolean) := Boolean => (a,b) -> if a then not b else b;
 
 -- the complex with quotient modules as vertices and edge maps (d_1s) as edges
 crossingComplex = method();
-crossingComplex(Braid, BraidRes) :=
-(b, sing) -> (
+crossingComplex(Braid, BraidRes, Ideal) :=
+(b, sing, I) -> (
     br := copyRes(sing);
     -- what binary word is represented by the fully-singular resolution
     start := sum(for i from 0 to #b.word-1 list (if b.word#i < 0 then 2^i else 0));
     Ms := new MutableList;
-    Ms#start = (br.r^1)/(N(br) + LI(br) + ideal(br.r_0));
+    Ms#start = (br.r^1)/(N(br) + LI(br) + I);
     -- traverse the cube starting at the fully-singular resolution    
     for i from 1 to 2^(#b.word)-1 do (
 	crossing := changingBit(xor(grayCode(i-1), start), xor(grayCode(i), start));
@@ -190,7 +190,7 @@ crossingComplex(Braid, BraidRes) :=
 	    joinCrossing(br, crossing);
 	);
     
-    	Ms#(xor(grayCode(i), start)) = (br.r^1)/(N(br) + LI(br) + ideal(br.r_0));
+    	Ms#(xor(grayCode(i), start)) = (br.r^1)/(N(br) + LI(br) + I);
     );
     
     M := fold((acc, A) -> acc ++ A, toList(Ms));
@@ -218,7 +218,23 @@ edgeComplex(Braid, BraidRes) := (b, br) -> (
 C2Minus = method();
 C2Minus(Braid) := (b) -> (
     sing := singularResolution(b);
-    A := crossingComplex(b, sing);
+    A := crossingComplex(b, sing, ideal(sing.r));
+    B := LDPlus(sing);
+    return tensor'(A,B);
+);
+
+C2Unreduced = method();
+C2Unreduced(Braid) := (b) -> (
+    sing := singularResolution(b);
+    A := crossingComplex(b, sing, ideal(sing.r_0^2));
+    B := LDPlus(sing);
+    return tensor'(A,B);
+);
+
+C2Reduced = method();
+C2Reduced(Braid) := (b) -> (
+    sing := singularResolution(b);
+    A := crossingComplex(b, sing, ideal(sing.r_0));
     B := LDPlus(sing);
     return tensor'(A,B);
 );
