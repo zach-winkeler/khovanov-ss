@@ -71,8 +71,3 @@ gGradedModuleMap(GGradedModule, GGradedModule, List) := GGradedModuleMap =>
 	(N, M, summands) -> (
 		return gGradedModuleMap(N, M, hashTable summands);
 	);
-
-R = QQ[x,y]
-mod2 = (ZZ^1)/(2*(ZZ^1))
-z = 0*mod2_0
-one = mod2_0
