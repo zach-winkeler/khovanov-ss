@@ -20,20 +20,6 @@ N(BraidRes) := (br) -> (
     return N1 + N3;
 );
 
--- outputs a new hash table with values as keys and vice versa
--- is this used anywhere?
-invertTable = method();
-invertTable(MutableHashTable) := (ht) -> (
-    out := new MutableHashTable;
-    htkeys := keys(ht);
-    
-    for i from 0 to #htkeys-1 do (
-	out#(ht#(htkeys#i)) = htkeys#i;
-    );
-
-    return out;
-);
-
 -- returns whether or not the edge meets the vertex
 -- null edges are OK
 edgeMeetsVertex = method();
@@ -149,11 +135,11 @@ LDPlus(BraidRes) := DifferentialGradedModule =>
     vs := keys(br.adjacent);
     out := withZeroDifferential(br.r);
     for i from 0 to #vs-1 do (
-	if (vs#i).row < 0 then (
-	    out = out ** differentialGradedModule(br.r^2, map(br.r^2, br.r^2,
-		    {(0,1) => LPlus(br, vs#i), (1,0) => L(br, vs#i)}), {0, (ZZ/2)_0},
-	    	squaresToZero => false);
-	);
+        if (vs#i).row < 0 then (
+            out = out ** differentialGradedModule(br.r^2, map(br.r^2, br.r^2,
+                {(0,1) => LPlus(br, vs#i), (1,0) => L(br, vs#i)}), {0, (ZZ/2)_0},
+                squaresToZero => false);
+        );
     );
     return out;
 );
@@ -183,12 +169,12 @@ crossingComplex(Braid, BraidRes, Ideal) :=
     Ms#start = (br.r^1)/(N(br) + LI(br) + I);
     -- traverse the cube starting at the fully-singular resolution    
     for i from 1 to 2^(#b.word)-1 do (
-	crossing := changingBit(xor(grayCode(i-1), start), xor(grayCode(i), start));
-	if XOR(xor(grayCode(i-1), start) & 2^crossing == 0, b.word#crossing < 0) then (
-	    splitCrossing(br, crossing);
-	) else (
-	    joinCrossing(br, crossing);
-	);
+        crossing := changingBit(xor(grayCode(i-1), start), xor(grayCode(i), start));
+        if XOR(xor(grayCode(i-1), start) & 2^crossing == 0, b.word#crossing < 0) then (
+            splitCrossing(br, crossing);
+        ) else (
+            joinCrossing(br, crossing);
+        );
     
     	Ms#(xor(grayCode(i), start)) = (br.r^1)/(N(br) + LI(br) + I);
     );
