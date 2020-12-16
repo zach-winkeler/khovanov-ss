@@ -73,19 +73,21 @@ vertexCycleIdeal(BraidRes, List) := (br, cycle) -> (
 	z = vCycle#2;
 	
 	yNeighbors := br.adjacent#(y);
-    	inPos := position(yNeighbors, e' -> not isNull(e') and e' == e);
+    inPos := position(yNeighbors, e' -> not isNull(e') and e' == e);
 	outPos := (inPos + 1) % 4;
-        while (not isNull(yNeighbors#outPos) and (yNeighbors#outPos).var == br.r_0)
-	or not edgeMeetsVertex(yNeighbors#outPos, z) do (
-	    if not isNull(yNeighbors#outPos) then (
-	    	if outPos == 0 or outPos == 1 then (
-		    outProd = outProd * (yNeighbors#outPos).var;
-	    	) else (
-		    inProd = inProd * (yNeighbors#outPos).var;
-	    	);
-	    );
-	    outPos = (outPos + 1) % 4;
-	);
+    while (not isNull(yNeighbors#outPos) 
+        and (yNeighbors#outPos).var == br.r_0)
+        or not edgeMeetsVertex(yNeighbors#outPos, z)
+    do (
+        if not isNull(yNeighbors#outPos) then (
+            if outPos == 0 or outPos == 1 then (
+                outProd = outProd * (yNeighbors#outPos).var;
+                ) else (
+                inProd = inProd * (yNeighbors#outPos).var;
+            );
+        );
+    outPos = (outPos + 1) % 4;
+    );
         
 	e = yNeighbors#outPos;
 	vCycle = drop(vCycle, 1);
@@ -119,10 +121,10 @@ LI(BraidRes) := (br) -> (
         
     vertices := keys(br.adjacent);
     for i from 0 to #vertices-1 do (
-	v := vertices#i;
-	if v.row >= 0 and vDegree(br, v) == 4 then (
-	    out = out + ideal(L(br, v));
-	);
+        v := vertices#i;
+        if v.row >= 0 and vDegree(br, v) == 4 then (
+            out = out + ideal(L(br, v));
+        );
     );
 
     return out;
