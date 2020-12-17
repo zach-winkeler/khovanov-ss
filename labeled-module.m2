@@ -13,6 +13,12 @@ LabeledModule == LabeledModule := Boolean =>
 		return lm1.m == lm2.m and lm1.labels == lm2.labels;
 );
 
+zeroModule = method();
+zeroModule(Ring) := LabeledModule =>
+(r) -> (
+	return labeledModule(r^0, {});
+)
+
 LabeledModule ++ LabeledModule := LabeledModule =>
 (lm1, lm2) -> (
 		return labeledModule(lm1.m ++ lm2.m, lm1.labels | lm2.labels);

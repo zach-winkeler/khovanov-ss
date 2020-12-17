@@ -1,5 +1,5 @@
 needs "braid.m2";
-needs "differential.m2";
+needs "complex.m2";
 needs "functions.m2";
 needsPackage "Matroids";
 
@@ -130,17 +130,20 @@ LI(BraidRes) := (br) -> (
     return out;
 );
 
--- the whole LDPlus chain complex
+-- the LDPlus curved complex
 LDPlus = method();
-LDPlus(BraidRes) := DifferentialGradedModule =>
+LDPlus(BraidRes) := Complex =>
 (br) -> (
     vs := keys(br.adjacent);
     out := withZeroDifferential(br.r);
     for i from 0 to #vs-1 do (
         if (vs#i).row < 0 then (
-            out = out ** differentialGradedModule(br.r^2, map(br.r^2, br.r^2,
-                {(0,1) => LPlus(br, vs#i), (1,0) => L(br, vs#i)}), {0, (ZZ/2)_0},
-                squaresToZero => false);
+            m0 := labeledModule(br.r^1, {"0"});
+            m1 := labeledModule(br.r^1, {"1"});
+            d0 := labeledModuleMap(m1, m0, map(br.r^1, br.r^1, L(br, vs#i)));
+            d1 := labeledModuleMap(m0, m1, map(br.r^1, br.r^1, LPlus(br, vs#i)));
+            c = complex(d0, d1);
+            out = out ** c;
         );
     );
     return out;
@@ -162,7 +165,7 @@ XOR(Boolean, Boolean) := Boolean => (a,b) -> if a then not b else b;
 
 -- the complex with quotient modules as vertices and edge maps (d_1s) as edges
 crossingComplex = method();
-crossingComplex(Braid, BraidRes, Ideal) :=
+crossingComplex(Braid, BraidRes, Ideal) := Complex =>
 (b, sing, I) -> (
     br := copyRes(sing);
     -- what binary word is represented by the fully-singular resolution

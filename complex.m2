@@ -33,3 +33,15 @@ Complex ** Complex := Complex =>
 				|| (identityMap(X.m1) ** Y.d0 | -X.d0 ** identityMap(Y.m1));
 		return complex(d0, d1);
     );
+
+-- the identity complex for the tensor product
+-- 0 -> R -> 0
+withZeroDifferential = method();
+withZeroDifferential(Ring) := Complex =>
+(r) -> (
+	m0 := labeledModule(r^1, {""});
+	m1 := zeroModule(r);
+	d0 := labeledModuleMap(m1, m0, map(r^0, r^1, 0));
+	d1 := labeledModuleMap(m0, m1, map(r^1, r^0, 0));
+	return complex(d0, d1);
+);
