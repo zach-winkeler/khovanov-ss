@@ -2,7 +2,7 @@ needs "labeled-module.m2";
 
 -- useless?
 Complex = new Type of HashTable;
-Complex.synonym = "Z/2-graded chain complex with labeled generators";
+Complex.synonym = "Z/2-graded curved complex with labeled generators";
 
 complex = method();
 complex(LabeledModuleMap, LabeledModuleMap) := Complex =>
@@ -25,6 +25,16 @@ Complex ++ Complex := Complex =>
 		return complex(X.d0 ++ Y.d0, X.d1 ++ Y.d1);
 		);
 
+tensorC = method();
+tensorC(Complex, Complex, Function) := Complex =>
+(X, Y, f) -> (
+	d0 := (tensorLMM(X.d0, identityMap(Y.m0), f) | tensorLMM(identityMap(X.m1), Y.d1, f)) 
+				|| (tensorLMM(identityMap(X.m0), Y.d0, f) | tensorLMM(-X.d1, identityMap(Y.m1), f));
+	d1 := (tensorLMM(X.d1, identityMap(Y.m0), f) | tensorLMM(identityMap(X.m0), Y.d1, f)) 
+			|| (tensorLMM(identityMap(X.m1), Y.d0, f) | tensorLMM(-X.d0, identityMap(Y.m1), f));
+	return complex(d0, d1);
+);
+
 Complex ** Complex := Complex =>
     (X,Y) -> (
 		d0 := (X.d0 ** identityMap(Y.m0) | identityMap(X.m1) ** Y.d1) 
@@ -41,7 +51,23 @@ withZeroDifferential(Ring) := Complex =>
 (r) -> (
 	m0 := labeledModule(r^1, {""});
 	m1 := zeroModule(r);
-	d0 := labeledModuleMap(m1, m0, map(r^0, r^1, 0));
-	d1 := labeledModuleMap(m0, m1, map(r^1, r^0, 0));
+	d0 := labeledModuleMap(m1, m0, map(m1.m, m0.m, 0));
+	d1 := labeledModuleMap(m0, m1, map(m0.m, m1.m, 0));
 	return complex(d0, d1);
+);
+
+withZeroDifferential(LabeledModule) := Complex =>
+(lm) -> (
+	m0 := m;
+	m1 := zeroModule(ring lm.m);
+	d0 := labeledModuleMap(m1, m0, map(m1.m, m0.m, 0));
+	d1 := labeledModuleMap(m0, m1, map(m0.m, m1.m, 0));
+	return complex(d0, d1);
+);
+
+lHomology = method();
+lHomology(Complex) := LabeledModule =>
+(c) -> (
+	assert (c.d0 * c.d1 == zeroMap(c.m1, c.m1) and c.d1 * c.d0 == zeroMap(c.m0, c.m0));
+	return (lKernel c.d0)/(lImage c.d1) ++ (lKernel c.d1)/(lImage c.d0);
 );

@@ -2,6 +2,7 @@ LabeledModule = new Type of HashTable;
 labeledModule = method();
 labeledModule(Module, List) := LabeledModule =>
 (m, labels) -> (
+	assert (m.numgens == #labels);
 	return new LabeledModule from hashTable({
 		(global m) => m,
 		(global labels) => labels
@@ -62,6 +63,11 @@ identityMap(LabeledModule) := LabeledModuleMap =>
 	return labeledModuleMap(lm, lm, map(lm.m, lm.m, 1));
 );
 
+LabeledModuleMap == LabeledModuleMap := Boolean =>
+(f1, f2) -> (
+		return (f1.source == f2.source) and (f1.target == f2.target) and (f1.underlyingMap == f2.underlyingMap);
+);
+
 source LabeledModuleMap := LabeledModule =>
 (lm) -> (
 		return lm.source;
@@ -85,12 +91,37 @@ LabeledModuleMap ++ LabeledModuleMap := LabeledModuleMap =>
 			f1.underlyingMap ++ f2.underlyingMap);
 );
 
+zeroMap = method();
+zeroMap(LabeledModule, LabeledModule) := LabeledModuleMap =>
+(m1, m0) -> (
+	return labeledModuleMap(m1, m0, map(m1.m, m0.m, 0));
+);
+
+tensorLMM = method();
+tensorLMM(LabeledModuleMap, LabeledModuleMap, Function) := LabeledModuleMap =>
+(f1, f2, labelf) -> (
+	return labeledModuleMap(
+		tensorLM(f1.target, f2.target, labelf),
+		tensorLM(f1.source, f2.source, labelf),
+		f1.underlyingMap ** f2.underlyingMap
+	);
+);
+
 LabeledModuleMap ** LabeledModuleMap := LabeledModuleMap =>
 (f1, f2) -> (
 		return labeledModuleMap(
 			f1.target ** f2.target,
 			f1.source ** f2.source,
 			f1.underlyingMap ** f2.underlyingMap);
+);
+
+LabeledModuleMap * LabeledModuleMap := LabeledModuleMap =>
+(f1, f2) -> (
+	assert (f1.source == f2.target);
+		return labeledModuleMap(
+			f1.target,
+			f2.source,
+			f1.underlyingMap * f2.underlyingMap);
 );
 
 LabeledModuleMap | LabeledModuleMap := LabeledModuleMap =>
@@ -109,4 +140,21 @@ LabeledModuleMap || LabeledModuleMap := LabeledModuleMap =>
 		f1.target ++ f2.target,
 		f1.source,
 		f1.underlyingMap || f2.underlyingMap);
+);
+
+lKernel = method();
+lKernel(LabeledModuleMap) := LabeledModule =>
+(f) -> (
+	return labeledModule(kernel (f.underlyingMap), f.source.labels);
+);
+
+lImage = method();
+lImage(LabeledModuleMap) := LabeledModule =>
+(f) -> (
+	return labeledModule(image f.underlyingMap, f.target.labels);
+);
+
+LabeledModule / LabeledModule := LabeledModule =>
+(lm1, lm2) -> (
+	return labeledModule(lm1.m/lm2.m, lm1.labels);
 );
