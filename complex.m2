@@ -49,7 +49,7 @@ Complex ** Complex := Complex =>
 withZeroDifferential = method();
 withZeroDifferential(Ring) := Complex =>
 (r) -> (
-	m0 := labeledModule(r^1, {""});
+	m0 := labeledModule(r^1, {hashTable({})});
 	m1 := zeroModule(r);
 	d0 := labeledModuleMap(m1, m0, map(m1.m, m0.m, 0));
 	d1 := labeledModuleMap(m0, m1, map(m0.m, m1.m, 0));

@@ -151,12 +151,12 @@ LDPlus(BraidRes) := Complex =>
 		out := withZeroDifferential(br.r);
 		for i from 0 to #vs-1 do (
 				if (vs#i).row < 0 then (
-						m0 := labeledModule(br.r^1, {"0"});
-						m1 := labeledModule(br.r^1, {"1"});
+						m0 := labeledModule(br.r^1, {hashTable{(global small) => {0}}});
+						m1 := labeledModule(br.r^1, {hashTable{(global small) => {1}}});
 						d0 := labeledModuleMap(m1, m0, map(br.r^1, br.r^1, L(br, vs#i)));
 						d1 := labeledModuleMap(m0, m1, map(br.r^1, br.r^1, LPlus(br, vs#i)));
 						c = complex(d0, d1);
-						out = tensorC(out, c, (s,t) -> s | t);
+						out = out ** c;
 				);
 		);
 		return out;
@@ -197,6 +197,28 @@ fromBitString(String) := Number =>
 	return sum (for i from 0 to #s-1 list (2^i)*value(s#(#s-i-1)));
 );
 
+toBitList = method();
+toBitList(Number, Number) := List =>
+(n, l) -> (
+	assert (n < 2^l);
+	m := n;
+	out := {};
+	for i from 0 to l-1 do (
+		out = out | (
+			if (2^(l-i-1) <= m) 
+			then (m = m - 2^(l-i-1); {1}) 
+			else {0});
+	);
+	return out;
+);
+
+fromBitList = method();
+fromBitList(List) := Number =>
+(s) -> (
+	return sum (for i from 0 to #s-1 list (2^i)*(s#(#s-i-1)));
+);
+
+
 -- the complex with quotient modules as vertices and edge maps (d_1s) as edges
 crossingComplex = method();
 crossingComplex(Braid, BraidRes) := Complex =>
@@ -206,7 +228,9 @@ crossingComplex(Braid, BraidRes) := Complex =>
 		start := sum(for i from 0 to #b.word-1 list (if b.word#i < 0 then 2^i else 0));
 		Ms := new MutableList;
 		key := start;
-		Ms#start = labeledModule((br.r^1)/(N(br) + LI(br)), {toBitString(key, #b.word)});
+		Ms#start = labeledModule((br.r^1)/(N(br) + LI(br)), {
+			hashTable({(global big) => toBitList(key, #b.word)})
+		});
 		-- traverse the cube starting at the fully-singular resolution    
 		for i from 1 to 2^(#b.word)-1 do (
 				crossing := changingBit(xor(grayCode(i-1), start), xor(grayCode(i), start));
@@ -217,7 +241,9 @@ crossingComplex(Braid, BraidRes) := Complex =>
 				);
 			
 			key = xor(grayCode(i), start);
-			Ms#key = labeledModule((br.r^1)/(N(br) + LI(br)), {toBitString(key, #b.word)});
+			Ms#key = labeledModule((br.r^1)/(N(br) + LI(br)), {
+				hashTable({(global big) => toBitList(key, #b.word)})
+			});
 		);
 	
 		-- steal the edge maps (+ sign assignment) and gradings from another complex
@@ -228,13 +254,13 @@ crossingComplex(Braid, BraidRes) := Complex =>
 
 		for i from 0 to #ec.m0.labels-1 do (
 			label := ec.m0.labels#i;
-			submodule = Ms#(fromBitString(label));
+			submodule = Ms#(fromBitList(label.big));
 			m0 = m0 ++ submodule;
 		);
 
 		for i from 0 to #ec.m1.labels-1 do (
 			label := ec.m1.labels#i;
-			submodule = Ms#(fromBitString(label));
+			submodule = Ms#(fromBitList(label.big));
 			m1 = m1 ++ submodule;
 		);
 		
@@ -254,12 +280,12 @@ edgeComplex(Braid, BraidRes) := Complex =>
 			adjacentEdges := br.adjacent#(vertex(i,0));
 			(adjacentEdges#1).var - (adjacentEdges#3).var
 		);
-		m0 := labeledModule(br.r^1, {"0"});
-		m1 := labeledModule(br.r^1, {"1"});
+		m0 := labeledModule(br.r^1, {hashTable{(global big) => {0}}});
+		m1 := labeledModule(br.r^1, {hashTable{(global big) => {1}}});
 		d0 := labeledModuleMap(m1, m0, map(br.r^1, br.r^1, c));
 		d1 := labeledModuleMap(m0, m1, map(br.r^1, br.r^1, 0));
 		edge := complex(d0, d1);
-		out = tensorC(edge, out, (s,t) -> s | t);
+		out = edge ** out;
 	);
 	return out;
 );
@@ -270,7 +296,7 @@ C2Minus(Braid) := Complex =>
 		sing := singularResolution(b);
 		A := crossingComplex(b, sing);
 		B := LDPlus(sing);
-		return tensorC(A, B, (s,t) -> "big: " | s | ", small: " | t);
+		return A ** B;
 );
 
 C2Reduced = method();
@@ -278,46 +304,10 @@ C2Reduced(Braid) := Complex =>
 (b) -> (
 		C2M = C2Minus(b);
 		r = C2M.m0.m.ring;
-		m0 := labeledModule(r^1, {"reduction-grading 0"});
-		m1 := labeledModule(r^1, {"reduction-grading 1"});
+		m0 := labeledModule(r^1, {hashTable{(global reductionGrading) => {0}}});
+		m1 := labeledModule(r^1, {hashTable{(global reductionGrading) => {1}}});
 		d0 := labeledModuleMap(m1, m0, map(m1.m, m0.m, r_0));
 		d1 := labeledModuleMap(m0, m1, map(m0.m, m1.m, 0));
 		reductionComplex = complex(d0, d1);
 		return C2M ** reductionComplex;
 );
-
--- loadSS = method();
--- loadSS(Complex) := (C) -> (
---     FC := toFiltration(C.m, C.g);
---     del := C.d;
-
---     FFunction := p -> trim FC#(min(max(p,0),#FC-1));
---     etaFunction := p -> inducedMap(trim(F(p)/F(p+1)), F(p));
---     AFunction := (r,p) -> trim(kernel inducedMap(trim(F(p)/F(p+r)), F(p), del));
---     ZFunction := (r,p) -> trim(image inducedMap(, A(r,p), eta(p)));
---     BFunction := (r,p) -> trim(image inducedMap(, image inducedMap(, A(r-1,p-r+1), del), eta(p)));
---     EFunction := (r,p) -> trim(Z(r,p)/B(r,p));
---     EPrimeFunction := (r,p) -> trim(A(r,p)/(image(inducedMap(A(r,p), A(r-1,p-r+1), del)) + A(r-1,p+1)));
---     EPrimeToEFunction := (r,p) -> inducedMap(E(r,p),E'(r,p));
---     dFunction := (r,p) -> E'toE(r,p+r) * inducedMap(E'(r,p+r), E'(r,p), del) * inverse(E'toE(r,p));
---     HFunction := (r,p) -> trim(kernel(d(r,p)) / image(d(r,p-r)));
-
---     functionCache := new MutableHashTable;
---     cached := c -> (
---         f -> (
---             if not c#?f 
---             then c#f = new MutableHashTable; 
---             (i -> (if not c#f#?i then c#f#i = f(i); c#f#i))));
-
---     F = (cached(functionCache))(FFunction);
---     eta = (cached(functionCache))(etaFunction);
---     A = (cached(functionCache))(AFunction);
---     Z = (cached(functionCache))(ZFunction);
---     B = (cached(functionCache))(BFunction);
---     E = (cached(functionCache))(EFunction);
---     E' = (cached(functionCache))(EPrimeFunction);
---     E'toE = (cached(functionCache))(EPrimeToEFunction);
---     d = (cached(functionCache))(dFunction);
---     H = (cached(functionCache))(HFunction);
--- );
-

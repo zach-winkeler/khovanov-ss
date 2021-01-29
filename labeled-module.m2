@@ -11,7 +11,7 @@ labeledModule(Module, List) := LabeledModule =>
 
 LabeledModule == LabeledModule := Boolean =>
 (lm1, lm2) -> (
-		return lm1.m == lm2.m and lm1.labels == lm2.labels;
+		return lm1.m == lm2.m and lm1.labels === lm2.labels;
 );
 
 zeroModule = method();
@@ -41,7 +41,7 @@ tensorLM(LabeledModule, LabeledModule, Function) := LabeledModule =>
 
 LabeledModule ** LabeledModule := LabeledModule =>
 	(lm1, lm2) -> (
-		return tensorLM(lm1, lm2, (l1, l2) -> "(" | l1 | "," | l2 | ")");
+		return tensorLM(lm1, lm2, (l1, l2) -> merge(l1, l2, (i,j) -> i | j));
 );
 
 LabeledModuleMap = new Type of HashTable;
