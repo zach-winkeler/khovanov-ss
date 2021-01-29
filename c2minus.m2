@@ -148,7 +148,7 @@ LDPlus = method();
 LDPlus(BraidRes) := Complex =>
 (br) -> (
 		vs := keys(br.adjacent);
-		out := withZeroDifferential(br.r);
+		out := withZeroDifferential(br.r, hashTable{(global small) => {}});
 		for i from 0 to #vs-1 do (
 				if (vs#i).row < 0 then (
 						m0 := labeledModule(br.r^1, {hashTable{(global small) => {0}}});
@@ -274,7 +274,7 @@ crossingComplex(Braid, BraidRes) := Complex =>
 edgeComplex = method();
 edgeComplex(Braid, BraidRes) := Complex =>
 (b, br) -> (
-	out := withZeroDifferential(br.r);
+	out := withZeroDifferential(br.r, hashTable{(global big) => {}});
 	for i from 0 to #b.word-1 do (
 		c := if b.word#i > 0 then 1 else (
 			adjacentEdges := br.adjacent#(vertex(i,0));

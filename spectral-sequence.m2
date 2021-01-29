@@ -1,3 +1,6 @@
+needs "labeled-module.m2";
+needs "complex.m2";
+
 heightFiltration = method();
 heightFiltration(LabeledModule) := List =>
 (lm) -> (
@@ -14,13 +17,14 @@ heightFiltration(Complex) := List =>
 loadSS = method();
 loadSS(Complex) := (C) -> (
     FC := heightFiltration(C);
-    del := C.d0 ++ C.d1;
+    del := (zeroMap(C.m0, C.m0) | C.d1               )
+        || (C.d0                | zeroMap(C.m1, C.m1));
 
     FFunction := p -> trim' FC#(min(max(p,0),#FC-1));
     etaFunction := p -> inducedMap'(trim'(F(p)/F(p+1)), F(p));
     AFunction := (r,p) -> trim'(kernel' inducedMap'(trim'(F(p)/F(p+r)), F(p), del));
     ZFunction := (r,p) -> trim'(image' inducedMap'(, A(r,p), eta(p)));
-    BFunction := (r,p) -> trim'(image' inducedMap'(, image inducedMap(, A(r-1,p-r+1), del), eta(p)));
+    BFunction := (r,p) -> trim'(image' inducedMap'(, image' inducedMap'(, A(r-1,p-r+1), del), eta(p)));
     EFunction := (r,p) -> trim'(Z(r,p)/B(r,p));
     EPrimeFunction := (r,p) -> trim'(A(r,p)/(image'(inducedMap'(A(r,p), A(r-1,p-r+1), del)) + A(r-1,p+1)));
     EPrimeToEFunction := (r,p) -> inducedMap'(E(r,p),E'(r,p));

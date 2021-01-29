@@ -47,9 +47,9 @@ Complex ** Complex := Complex =>
 -- the identity complex for the tensor product
 -- 0 -> R -> 0
 withZeroDifferential = method();
-withZeroDifferential(Ring) := Complex =>
-(r) -> (
-	m0 := labeledModule(r^1, {hashTable({})});
+withZeroDifferential(Ring, HashTable) := Complex =>
+(r, label) -> (
+	m0 := labeledModule(r^1, {label});
 	m1 := zeroModule(r);
 	d0 := labeledModuleMap(m1, m0, map(m1.m, m0.m, 0));
 	d1 := labeledModuleMap(m0, m1, map(m0.m, m1.m, 0));

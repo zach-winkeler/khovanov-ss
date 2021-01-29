@@ -53,16 +53,16 @@ trim' = method();
 trim'(LabeledModule) := LabeledModule =>
 (lm) -> (
 	return labeledModule(trim lm.m, lm.labels);
-)
-
-inducedMap' = method();
-inducedMap'(LabeledModule, LabeledModule, LabeledModuleMap) := LabeledModuleMap =>
-(t, s, f) -> (
-	return labeledModuleMap(t, s, inducedMap(t.m, s.m, f.f));
 );
-inducedMap'(LabeledModule, LabeledModule) := LabeledModuleMap =>
-(t, s) -> (
-	return labeledModuleMap(t, s, inducedMap(t.m, s.m));
+
+LabeledModule / LabeledModule := LabeledModule =>
+(lm1, lm2) -> (
+	return labeledModule(lm1.m/lm2.m, lm1.labels);
+);
+
+actions(LabeledModule) := List =>
+(lm) -> (
+	return actions lm.m;
 );
 
 LabeledModuleMap = new Type of HashTable;
@@ -175,7 +175,16 @@ image'(LabeledModuleMap) := LabeledModule =>
 	return labeledModule(image f.underlyingMap, f.target.labels);
 );
 
-LabeledModule / LabeledModule := LabeledModule =>
-(lm1, lm2) -> (
-	return labeledModule(lm1.m/lm2.m, lm1.labels);
+inducedMap' = method();
+inducedMap'(LabeledModule, LabeledModule) := LabeledModuleMap =>
+(t, s) -> (
+	return labeledModuleMap(t, s, inducedMap(t.m, s.m));
+);
+inducedMap'(LabeledModule, LabeledModule, LabeledModuleMap) := LabeledModuleMap =>
+(t, s, f) -> (
+	return labeledModuleMap(t, s, inducedMap(t.m, s.m, f.underlyingMap));
+);
+inducedMap'(Nothing, LabeledModule, LabeledModuleMap) := LabeledModuleMap =>
+(t, s, f) -> (
+	return labeledModuleMap(target f, s, inducedMap(, s.m, f.underlyingMap));
 );
