@@ -65,6 +65,25 @@ actions(LabeledModule) := List =>
 	return actions lm.m;
 );
 
+describeGenerator = method();
+describeGenerator(LabeledModule, ZZ) := HashTable =>
+(lm, n) -> (
+    coeffs := entries((lm.m)_n);
+	nonZeroEntries := select(zip(lm.labels, coeffs), (label, c) -> c != 0);
+	return hashTable {
+		(global linearCombination) => hashTable(apply(nonZeroEntries, (label, c) -> label => c)),
+		(global actions) => actions lm_{n}
+	};
+);
+
+describeGenerators = method();
+describeGenerators(LabeledModule) := List =>
+(lm) -> (
+	return for i from 0 to (numgens lm.m)-1 list (
+		describeGenerator(lm, i)
+	);
+);
+
 LabeledModuleMap = new Type of HashTable;
 labeledModuleMap = method();
 labeledModuleMap(LabeledModule, LabeledModule, ModuleMap) := LabeledModuleMap =>
