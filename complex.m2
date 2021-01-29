@@ -65,9 +65,9 @@ withZeroDifferential(LabeledModule) := Complex =>
 	return complex(d0, d1);
 );
 
-lHomology = method();
-lHomology(Complex) := LabeledModule =>
+homology' = method();
+homology'(Complex) := LabeledModule =>
 (c) -> (
 	assert (c.d0 * c.d1 == zeroMap(c.m1, c.m1) and c.d1 * c.d0 == zeroMap(c.m0, c.m0));
-	return (lKernel c.d0)/(lImage c.d1) ++ (lKernel c.d1)/(lImage c.d0);
+	return (kernel' c.d0)/(image' c.d1) ++ (kernel' c.d1)/(image' c.d0);
 );

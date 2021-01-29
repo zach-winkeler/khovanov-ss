@@ -2,7 +2,7 @@ LabeledModule = new Type of HashTable;
 labeledModule = method();
 labeledModule(Module, List) := LabeledModule =>
 (m, labels) -> (
-	assert (m.numgens == #labels);
+	assert (numgens (ambient m) == #labels);
 	return new LabeledModule from hashTable({
 		(global m) => m,
 		(global labels) => labels
@@ -22,7 +22,7 @@ zeroModule(Ring) := LabeledModule =>
 
 LabeledModule ++ LabeledModule := LabeledModule =>
 (lm1, lm2) -> (
-		return labeledModule(lm1.m ++ lm2.m, lm1.labels | lm2.labels);
+	return labeledModule(lm1.m ++ lm2.m, lm1.labels | lm2.labels);
 );
 
 List ** List := List =>
@@ -42,6 +42,27 @@ tensorLM(LabeledModule, LabeledModule, Function) := LabeledModule =>
 LabeledModule ** LabeledModule := LabeledModule =>
 	(lm1, lm2) -> (
 		return tensorLM(lm1, lm2, (l1, l2) -> merge(l1, l2, (i,j) -> i | j));
+);
+
+LabeledModule _ List := LabeledModule =>
+(lm, genList) -> (
+	return labeledModule(subquotient((lm.m)_genList,), lm.labels);
+);
+
+trim' = method();
+trim'(LabeledModule) := LabeledModule =>
+(lm) -> (
+	return labeledModule(trim lm.m, lm.labels);
+)
+
+inducedMap' = method();
+inducedMap'(LabeledModule, LabeledModule, LabeledModuleMap) := LabeledModuleMap =>
+(t, s, f) -> (
+	return labeledModuleMap(t, s, inducedMap(t.m, s.m, f.f));
+);
+inducedMap'(LabeledModule, LabeledModule) := LabeledModuleMap =>
+(t, s) -> (
+	return labeledModuleMap(t, s, inducedMap(t.m, s.m));
 );
 
 LabeledModuleMap = new Type of HashTable;
@@ -142,14 +163,14 @@ LabeledModuleMap || LabeledModuleMap := LabeledModuleMap =>
 		f1.underlyingMap || f2.underlyingMap);
 );
 
-lKernel = method();
-lKernel(LabeledModuleMap) := LabeledModule =>
+kernel' = method();
+kernel'(LabeledModuleMap) := LabeledModule =>
 (f) -> (
 	return labeledModule(kernel (f.underlyingMap), f.source.labels);
 );
 
-lImage = method();
-lImage(LabeledModuleMap) := LabeledModule =>
+image' = method();
+image'(LabeledModuleMap) := LabeledModule =>
 (f) -> (
 	return labeledModule(image f.underlyingMap, f.target.labels);
 );
