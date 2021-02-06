@@ -145,7 +145,7 @@ LI(BraidRes) := (br) -> (
 
 -- the LDPlus curved complex
 LDPlus = method();
-LDPlus(BraidRes) := Complex =>
+LDPlus(BraidRes) := LabeledComplex =>
 (br) -> (
 		vs := keys(br.adjacent);
 		out := withZeroDifferential(br.r, hashTable{(global small) => {}});
@@ -155,7 +155,7 @@ LDPlus(BraidRes) := Complex =>
 						m1 := labeledModule(br.r^1, {hashTable{(global small) => {1}}});
 						d0 := labeledModuleMap(m1, m0, map(br.r^1, br.r^1, L(br, vs#i)));
 						d1 := labeledModuleMap(m0, m1, map(br.r^1, br.r^1, LPlus(br, vs#i)));
-						c = complex(d0, d1);
+						c = labeledComplex(d0, d1);
 						out = out ** c;
 				);
 		);
@@ -170,11 +170,6 @@ grayCode(ZZ) := ZZ => (n) -> xor(n, n//2);
 -- output is which position that difference is at
 changingBit = method();
 changingBit(ZZ,ZZ) := ZZ => (a,b) -> size2(xor(a,b))-1;
-
--- logical XOR
--- why is this not built in to Macaulay2
-XOR = method();
-XOR(Boolean, Boolean) := Boolean => (a,b) -> if a then not b else b;
 
 toBitString = method();
 toBitString(Number, Number) := String =>
@@ -221,7 +216,7 @@ fromBitList(List) := Number =>
 
 -- the complex with quotient modules as vertices and edge maps (d_1s) as edges
 crossingComplex = method();
-crossingComplex(Braid, BraidRes) := Complex =>
+crossingComplex(Braid, BraidRes) := LabeledComplex =>
 (b, sing) -> (
 		br := copyRes(sing);
 		-- what binary word is represented by the fully-singular resolution
@@ -267,12 +262,12 @@ crossingComplex(Braid, BraidRes) := Complex =>
 		d0 := labeledModuleMap(m1, m0, map(m1.m, m0.m, ec.d0.underlyingMap));
 		d1 := labeledModuleMap(m0, m1, map(m0.m, m1.m, ec.d1.underlyingMap));
 
-		return complex(d0, d1);
+		return labeledComplex(d0, d1);
 );
 
 -- like crossingComplex, but without the quotient modules at each vertex
 edgeComplex = method();
-edgeComplex(Braid, BraidRes) := Complex =>
+edgeComplex(Braid, BraidRes) := LabeledComplex =>
 (b, br) -> (
 	out := withZeroDifferential(br.r, hashTable{(global big) => {}});
 	for i from 0 to #b.word-1 do (
@@ -284,14 +279,14 @@ edgeComplex(Braid, BraidRes) := Complex =>
 		m1 := labeledModule(br.r^1, {hashTable{(global big) => {1}}});
 		d0 := labeledModuleMap(m1, m0, map(br.r^1, br.r^1, c));
 		d1 := labeledModuleMap(m0, m1, map(br.r^1, br.r^1, 0));
-		edge := complex(d0, d1);
+		edge := labeledComplex(d0, d1);
 		out = edge ** out;
 	);
 	return out;
 );
 
 C2Minus = method();
-C2Minus(Braid) := Complex =>
+C2Minus(Braid) := LabeledComplex =>
 (b) -> (
 		sing := singularResolution(b);
 		A := crossingComplex(b, sing);
@@ -299,8 +294,16 @@ C2Minus(Braid) := Complex =>
 		return A ** B;
 );
 
+C2Minus(BraidRes) := LabeledComplex =>
+(br) -> (
+	M := labeledModule((br.r^1)/(N(br) + LI(br)),{new HashTable});
+	A := withZeroDifferential(M);
+	B := LDPlus(br);
+	return A ** B;
+);
+
 C2Reduced = method();
-C2Reduced(Braid) := Complex =>
+C2Reduced(Braid) := LabeledComplex =>
 (b) -> (
 		C2M = C2Minus(b);
 		r = C2M.m0.m.ring;
@@ -308,6 +311,6 @@ C2Reduced(Braid) := Complex =>
 		m1 := labeledModule(r^1, {hashTable{(global reductionGrading) => {1}}});
 		d0 := labeledModuleMap(m1, m0, map(m1.m, m0.m, r_0));
 		d1 := labeledModuleMap(m0, m1, map(m0.m, m1.m, 0));
-		reductionComplex = complex(d0, d1);
+		reductionComplex = labeledComplex(d0, d1);
 		return C2M ** reductionComplex;
 );

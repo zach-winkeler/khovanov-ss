@@ -126,6 +126,18 @@ ugraph(BraidRes) := (br) -> (
     return (g,vertexIndices);
 );
 
+resolve = method();
+resolve(Braid, List) := BraidRes =>
+(b, resolutions) -> (
+    out := singularResolution(b);
+    for i from 0 to #b.word-1 do (
+        if XOR(b.word#i > 0, resolutions#i == 0) then (
+            splitCrossing(out, i);
+        );
+    );
+    return out;
+);
+
 -- build the fully singular resolution of the given braid
 -- Braid -> BraidRes
 singularResolution = method();

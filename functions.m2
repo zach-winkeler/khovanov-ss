@@ -1,3 +1,8 @@
+-- logical XOR
+-- why is this not built in to Macaulay2
+XOR = method();
+XOR(Boolean, Boolean) := Boolean => (a,b) -> if a then not b else b;
+
 aggressiveTrim = Q -> 
     image(generators Q)/
         intersect(image generators Q, image relations Q);

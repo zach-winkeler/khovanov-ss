@@ -55,6 +55,11 @@ trim'(LabeledModule) := LabeledModule =>
 	return labeledModule(trim lm.m, lm.labels);
 );
 
+LabeledModule + LabeledModule := LabeledModule =>
+(lm1, lm2) -> (
+	return labeledModule(lm1.m + lm2.m, lm1.labels);
+);
+
 LabeledModule / LabeledModule := LabeledModule =>
 (lm1, lm2) -> (
 	return labeledModule(lm1.m/lm2.m, lm1.labels);
@@ -70,10 +75,14 @@ describeGenerator(LabeledModule, ZZ) := HashTable =>
 (lm, n) -> (
     coeffs := entries((lm.m)_n);
 	nonZeroEntries := select(zip(lm.labels, coeffs), (label, c) -> c != 0);
-	return hashTable {
-		(global linearCombination) => hashTable(apply(nonZeroEntries, (label, c) -> label => c)),
-		(global actions) => actions lm_{n}
-	};
+	return hashTable(apply(nonZeroEntries, (label, c) -> label => c));
+);
+
+describeGenerator(Module, List, ZZ) := HashTable =>
+(m, labels, n) -> (
+	coeffs := entries(m_n);
+	nonZeroEntries := select(zip(labels, coeffs), (label, c) -> c != 0);
+	return hashTable(apply(nonZeroEntries, (label, c) -> label => c));
 );
 
 describeGenerators = method();
@@ -82,6 +91,19 @@ describeGenerators(LabeledModule) := List =>
 	return for i from 0 to (numgens lm.m)-1 list (
 		describeGenerator(lm, i)
 	);
+);
+
+describeGenerators(Module, List) := List =>
+(m, labels) -> (
+	return for i from 0 to (numgens m)-1 list (
+		describeGenerator(m, labels, i)
+	);
+);
+
+select' = method();
+select'(LabeledModule, Function) := LabeledModule =>
+(lm, pred) -> (
+	return lm_(positions(lm.labels, pred));
 );
 
 LabeledModuleMap = new Type of HashTable;
@@ -206,4 +228,15 @@ inducedMap'(LabeledModule, LabeledModule, LabeledModuleMap) := LabeledModuleMap 
 inducedMap'(Nothing, LabeledModule, LabeledModuleMap) := LabeledModuleMap =>
 (t, s, f) -> (
 	return labeledModuleMap(target f, s, inducedMap(, s.m, f.underlyingMap));
+);
+
+inverse' = method();
+inverse'(LabeledModuleMap) := LabeledModuleMap =>
+(f) -> (
+	return labeledModuleMap(target f, source f, inverse(f.underlyingMap));
+);
+
+LabeledModuleMap == ZZ := Boolean =>
+(f, n) -> (
+	return f.underlyingMap == n;
 );
