@@ -1,4 +1,5 @@
 needsPackage "Graphs";
+needs "functions.m2";
 
 -- why is this not predefined
 isNull = method(Dispatch=>Thing);
@@ -44,9 +45,9 @@ edge = method();
 -- Thing should really be some parent of RingElement
 edge(Vertex, Vertex, Thing) := (s, t, var) -> (
     return new Edge from hashTable{
-	(global s) => s,
-	(global t) => t,
-	(global var) => var
+        (global s) => s,
+        (global t) => t,
+        (global var) => var
     };
 );
 
@@ -110,17 +111,17 @@ ugraph(BraidRes) := (br) -> (
         
     vertices := sort(keys(br.adjacent));
     for i from 0 to #vertices-1 do (
-	v := vertices#i;
-	g = addVertex(g, i);
-	vertexIndices#v = i;
+        v := vertices#i;
+        g = addVertex(g, i);
+        vertexIndices#v = i;
     );
     
     edgeVars = keys(br.edges);
     for i from 0 to #edgeVars-1 do (
-	e := br.edges#(edgeVars#i);
-	sIndex := vertexIndices#(e.s);
-	tIndex := vertexIndices#(e.t);
-	g = addEdge(g, set {sIndex, tIndex});
+        e := br.edges#(edgeVars#i);
+        sIndex := vertexIndices#(e.s);
+        tIndex := vertexIndices#(e.t);
+        g = addEdge(g, set {sIndex, tIndex});
     );
 
     return (g,vertexIndices);
@@ -261,4 +262,60 @@ joinCrossing(BraidRes, ZZ) := (br, x) -> (
     
     removeBrVertex(br, vl);
     removeBrVertex(br, vr);
+);
+
+singularBraid = method();
+singularBraid(ZZ, List) := BraidRes =>
+(n, word) -> (
+    crossings := {};
+
+    strands := new MutableList from (for i from 1 to n list -i);
+    nextStrand := 1;
+    for i from 0 to #word-1 do (
+        pos := word#i;
+        crossings = append(crossings, {strands#(pos-1), strands#pos, nextStrand+1, nextStrand});
+        strands#(pos-1) = nextStrand;
+        strands#pos = nextStrand + 1;
+        nextStrand = nextStrand + 2;
+    );
+
+    subs := hashTable(for i from 1 to n list (-i => strands#(i-1)));
+    crossings = apply(crossings, (crossing) -> findAndReplace(subs, crossing));
+    numEdges := max(flatten(crossings));
+    r := QQ[for i from 1 to numEdges list "u"|i];
+    edges := new MutableHashTable;
+    for e from 1 to numEdges do (
+        s := position(crossings, (crossing) -> crossing#0 == e or crossing#1 == e) + 1;
+        t := position(crossings, (crossing) -> crossing#2 == e or crossing#3 == e) + 1;
+        var := r_(e-1);
+        edges#var = edge(vertex(s,0), vertex(t,0), var);
+    );
+    adjacent := new MutableHashTable from (
+        for i from 0 to #crossings-1 list (
+            crossing := crossings#i;
+            vertex(i+1,0) => {
+                edges#(r_(crossing#0-1)),
+                edges#(r_(crossing#1-1)),
+                edges#(r_(crossing#2-1)),
+                edges#(r_(crossing#3-1))
+            }
+        )
+    );
+    
+    return new BraidRes from hashTable{
+        (global adjacent) => adjacent,
+        (global r) => r,
+        (global edges) => edges
+    };
+);
+
+Diagram = new Type of HashTable;
+psbraid = method();
+psbraid(ZZ, List, List) := Diagram =>
+(n, typeI, crossings) -> (
+    return new Diagram from hashTable {
+        (global n) => n,
+        (global typeI) => typeI,
+        (global crossings) => crossings
+    };
 );

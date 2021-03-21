@@ -4,9 +4,11 @@ needs "complex.m2";
 heightFiltration = method();
 heightFiltration(DifferentialModule, List) := FilteredDifferentialModule =>
 (dm, labels) -> (
-    n := #((labels#0).big) + #((labels#0).reductionGrading);
+    n := #((labels#0).big);
+    -- n := #((labels#0).big) + #((labels#0).reductionGrading);
     filt := for i from 0 to n+1 list (
-        image (dm.m)_(positions(labels, (label) -> sum(label.big | label.reductionGrading) >= i))
+        image (dm.m)_(positions(labels, (label) -> sum(label.big) >= i))
+        -- image (dm.m)_(positions(labels, (label) -> sum(label.big | label.reductionGrading) >= i))
     );
     return filteredDifferentialModule(filt, dm.d);
 );

@@ -27,3 +27,9 @@ zipWith(List, List, Function) := List =>
 );
 
 plusplus = (x,y) -> x ++ y
+
+findAndReplace = method();
+findAndReplace(HashTable, List) := List =>
+(t, l) -> (
+    return apply(l, (ele) -> if t#?ele then t#ele else ele);
+);
