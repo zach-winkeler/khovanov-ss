@@ -67,7 +67,7 @@ actions(LabeledModule) := List =>
 
 LabeledModuleMap = new Type of HashTable;
 labeledModuleMap = method();
-labeledModuleMap(LabeledModule, LabeledModule, ModuleMap) := LabeledModuleMap =>
+labeledModuleMap(LabeledModule, LabeledModule, Matrix) := LabeledModuleMap =>
 (lmt, lms, f) -> (
 		assert (source f == lms.m);
 		assert (target f == lmt.m);

@@ -15,3 +15,16 @@ zipWith(List, List, Function) := List =>
 );
 
 plusplus = (x,y) -> x ++ y
+
+-- outputs a new hash table with values as keys and vice versa
+invertTable = method();
+invertTable(MutableHashTable) := (ht) -> (
+    out := new MutableHashTable;
+    htkeys := keys(ht);
+    
+    for i from 0 to #htkeys-1 do (
+	out#(ht#(htkeys#i)) = htkeys#i;
+    );
+
+    return out;
+);

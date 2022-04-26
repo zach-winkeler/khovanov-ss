@@ -7,6 +7,6 @@ load "spectral-sequence.m2";
 
 truncateOutput 500;
 
-b = braid(2,{2,2,2});
-C = C2Reduced b;
-loadSS(C);
+b = braid(2, {2,2,2});
+-- C = C2Reduced b;
+-- H = homology' C;

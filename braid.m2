@@ -54,6 +54,44 @@ Edge == Edge := (e1, e2) -> (e1.s == e2.s and e1.t == e2.t and e1.var == e2.var)
 
 BraidRes = new Type of MutableHashTable;
 
+inVars = method();
+inVars(BraidRes, Vertex) := List =>
+(br, v) -> (
+    adj := br.adjacent#v;
+    if not isNull(adj#2) then (
+        if not isNull(adj#3) then (
+            return {(adj#2).var, (adj#3).var};
+        ) else (
+            return {(adj#2).var}
+        );
+    ) else (
+        if not isNull(adj#3) then (
+            return {(adj#3).var};
+        ) else (
+            return {};
+        );
+    );
+);
+
+outVars = method();
+outVars(BraidRes, Vertex) := List =>
+(br, v) -> (
+    adj := br.adjacent#v;
+    if not isNull(adj#0) then (
+        if not isNull(adj#1) then (
+            return {(adj#0).var, (adj#1).var};
+        ) else (
+            return {(adj#0).var}
+        );
+    ) else (
+        if not isNull(adj#1) then (
+            return {(adj#1).var};
+        ) else (
+            return {};
+        );
+    );
+);
+
 emptyRes = method();
 emptyRes(Ring) := (r) -> (
     return new BraidRes from hashTable{
